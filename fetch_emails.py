@@ -14,6 +14,13 @@ EMAIL_PASS = os.getenv("EMAIL_PASS")
 # Database Connection (PostgreSQL)
 DATABASE_URL = os.getenv("DATABASE_URL")
 
+if not DATABASE_URL:
+    print("❌ ERROR: DATABASE_URL is not set! Make sure it is defined in Render environment variables.")
+    exit(1)
+
+print(f"🔍 DATABASE_URL is set to: {DATABASE_URL}")
+
+
 conn = psycopg2.connect(DATABASE_URL)
 c = conn.cursor()
 
