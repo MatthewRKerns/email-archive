@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Archive</title>
+</head>
+<body>
+    <h1>Email Archive</h1>
+    {% if email_dict %}
+        {% for month, emails in email_dict.items() %}
+            <h2>{{ month }}</h2>
+            <ul>
+                {% for date, subject, filename in emails %}
+                    <li>{{ date }} - <a href="/email/{{ filename }}" target="_blank">{{ subject }}</a></li>
+                {% endfor %}
+            </ul>
+        {% endfor %}
+    {% else %}
+        <p>No emails found.</p>
+    {% endif %}
+</body>
+</html>
