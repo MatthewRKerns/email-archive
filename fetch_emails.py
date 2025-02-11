@@ -9,7 +9,6 @@ EMAIL_HOST = "imap.gmail.com"  # Change for your provider
 EMAIL_USER = os.getenv("EMAIL_USER")
 EMAIL_PASS = os.getenv("EMAIL_PASS")
 
-
 ARCHIVE_DIR = "emails"
 os.makedirs(ARCHIVE_DIR, exist_ok=True)
 
