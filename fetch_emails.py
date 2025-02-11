@@ -6,8 +6,8 @@ from email.header import decode_header
 from datetime import datetime
 
 EMAIL_HOST = "imap.gmail.com"  # Change for your provider
-EMAIL_USER = "your-email@gmail.com"
-EMAIL_PASS = "your-app-password"
+EMAIL_USER = "natchezwebarchivist@gmail.com"
+EMAIL_PASS = "NZW3bcrawler"
 
 ARCHIVE_DIR = "emails"
 os.makedirs(ARCHIVE_DIR, exist_ok=True)
