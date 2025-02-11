@@ -2,7 +2,8 @@ name: Fetch Emails
 
 on:
   schedule:
-    - cron: '*/5 * * * *'  # Runs every hour
+    - cron: '0 * * * *'  # Runs every hour
+  workflow_dispatch:  # <--- This enables the "Run workflow" button
 
 jobs:
   fetch:
