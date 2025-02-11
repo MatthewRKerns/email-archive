@@ -1,0 +1,5 @@
+flask
+imapclient
+email
+gunicorn
+sqlite3
