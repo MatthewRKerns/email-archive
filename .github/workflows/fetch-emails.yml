@@ -3,7 +3,7 @@ name: Fetch Emails
 on:
   schedule:
     - cron: '0 * * * *'  # Runs every hour
-  workflow_dispatch:  # <--- This enables the "Run workflow" button
+  workflow_dispatch:  # Allows manual trigger
 
 jobs:
   fetch:
@@ -16,5 +16,12 @@ jobs:
           python-version: '3.9'
       - name: Install dependencies
         run: pip install -r requirements.txt
-      - name: Run script
-        run: python fetch_emails.py
+      - name: Run script with secrets
+        env:
+          EMAIL_USER: ${{ secrets.EMAIL_USER }}
+          EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
+        run: |
+          echo "EMAIL_USER is set to: $EMAIL_USER"
+          if [ -z "$EMAIL_USER" ]; then echo "❌ EMAIL_USER is missing!"; exit 1; fi
+          if [ -z "$EMAIL_PASS" ]; then echo "❌ EMAIL_PASS is missing!"; exit 1; fi
+          python fetch_emails.py
