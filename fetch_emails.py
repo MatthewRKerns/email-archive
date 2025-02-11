@@ -6,21 +6,15 @@ import sqlite3
 from email.header import decode_header
 from datetime import datetime
 
-# Environment Variables for Email Credentials
-EMAIL_HOST = "imap.gmail.com"  # Change for other providers
+# Email Credentials
+EMAIL_HOST = "imap.gmail.com"  
 EMAIL_USER = os.getenv("EMAIL_USER")
 EMAIL_PASS = os.getenv("EMAIL_PASS")
 
-# Database Connection (PostgreSQL)
-DATABASE_URL = os.getenv("DATABASE_URL")
+# Manually set DATABASE_URL (Replace with your actual Internal Database URL from Render)
+DATABASE_URL = "postgresql://emailarchive_user:0PWYwwVi0vGOiCe64ofQDEQ6W63sJFhV@dpg-culbi55svqrc73cb9kq0-a/emailarchive"
 
-if not DATABASE_URL:
-    print("❌ ERROR: DATABASE_URL is not set! Make sure it is defined in Render environment variables.")
-    exit(1)
-
-print(f"🔍 DATABASE_URL is set to: {DATABASE_URL}")
-
-
+# Connect to PostgreSQL
 conn = psycopg2.connect(DATABASE_URL)
 c = conn.cursor()
 
