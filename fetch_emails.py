@@ -33,7 +33,26 @@ def fetch_emails():
     mail.login(EMAIL_USER, EMAIL_PASS)
     mail.select("inbox")
 
-    status, messages = mail.search(None, 'FROM "natchezss.com"')
+status, messages = mail.search(None, 'FROM', 'natchezss.com')
+
+if messages[0] == b'':
+    print("📭 No emails found matching 'natchezss.com'")
+    return
+
+print(f"📩 Found {len(messages[0].split())} emails from natchezss.com")
+
+for num in messages[0].split():
+    _, msg_data = mail.fetch(num, "(RFC822)")
+    raw_email = msg_data[0][1]
+
+    msg = email.message_from_bytes(raw_email)
+    
+    sender = msg.get("From")
+    subject, encoding = decode_header(msg["Subject"])[0]
+    if isinstance(subject, bytes):
+        subject = subject.decode(encoding or "utf-8")
+
+    print(f"📥 Processing Email - From: {sender}, Subject: {subject}")
 
     for num in messages[0].split():
         _, msg_data = mail.fetch(num, "(RFC822)")
