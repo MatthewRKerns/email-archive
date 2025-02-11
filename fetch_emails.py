@@ -18,16 +18,6 @@ os.makedirs(ARCHIVE_DIR, exist_ok=True)
 # Connect to SQLite
 conn = sqlite3.connect("emails.db")
 c = conn.cursor()
-print(f"📝 Saving to database: {received_date}, {subject}, {filename}")
-
-try:
-    c.execute("INSERT INTO emails (received_date, subject, filename) VALUES (%s, %s, %s)",
-              (received_date, subject, filename))
-    conn.commit()
-    print("✅ Email successfully saved to database!")
-except Exception as e:
-    print(f"❌ Error saving email to database: {e}")
-
 
 def fetch_emails():
     # Connect to IMAP
@@ -39,21 +29,9 @@ def fetch_emails():
 
     if messages[0] == b'':
         print("📭 No emails found matching 'natchezss.com'")
-        return  # ✅ Now properly inside the function
+        return
 
     print(f"📩 Found {len(messages[0].split())} emails from natchezss.com")
-
-    for num in messages[0].split():
-        _, msg_data = mail.fetch(num, "(RFC822)")
-        raw_email = msg_data[0][1]
-
-        msg = email.message_from_bytes(raw_email)
-        sender = msg.get("From")
-        subject, encoding = decode_header(msg["Subject"])[0]
-        if isinstance(subject, bytes):
-            subject = subject.decode(encoding or "utf-8")
-
-        print(f"📥 Processing Email - From: {sender}, Subject: {subject}")
 
     for num in messages[0].split():
         _, msg_data = mail.fetch(num, "(RFC822)")
@@ -76,9 +54,16 @@ def fetch_emails():
                 if part.get_content_type() == "text/html":
                     f.write(part.get_payload(decode=True).decode("utf-8"))
 
-        c.execute("INSERT INTO emails (received_date, subject, filename) VALUES (?, ?, ?)",
-                  (received_date, subject, filename))
-        conn.commit()
+        # ✅ Now properly inside the loop where variables exist
+        print(f"📝 Saving to database: {received_date}, {subject}, {filename}")
+
+        try:
+            c.execute("INSERT INTO emails (received_date, subject, filename) VALUES (?, ?, ?)",
+                      (received_date, subject, filename))
+            conn.commit()
+            print("✅ Email successfully saved to database!")
+        except Exception as e:
+            print(f"❌ Error saving email to database: {e}")
 
     mail.logout()
 
