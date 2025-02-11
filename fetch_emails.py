@@ -29,30 +29,30 @@ c.execute("""
 conn.commit()
 
 def fetch_emails():
+    # Connect to IMAP
     mail = imaplib.IMAP4_SSL(EMAIL_HOST)
     mail.login(EMAIL_USER, EMAIL_PASS)
     mail.select("inbox")
 
-status, messages = mail.search(None, 'FROM', 'natchezss.com')
+    status, messages = mail.search(None, 'FROM', 'natchezss.com')
 
-if messages[0] == b'':
-    print("📭 No emails found matching 'natchezss.com'")
-    return
+    if messages[0] == b'':
+        print("📭 No emails found matching 'natchezss.com'")
+        return  # ✅ Now properly inside the function
 
-print(f"📩 Found {len(messages[0].split())} emails from natchezss.com")
+    print(f"📩 Found {len(messages[0].split())} emails from natchezss.com")
 
-for num in messages[0].split():
-    _, msg_data = mail.fetch(num, "(RFC822)")
-    raw_email = msg_data[0][1]
+    for num in messages[0].split():
+        _, msg_data = mail.fetch(num, "(RFC822)")
+        raw_email = msg_data[0][1]
 
-    msg = email.message_from_bytes(raw_email)
-    
-    sender = msg.get("From")
-    subject, encoding = decode_header(msg["Subject"])[0]
-    if isinstance(subject, bytes):
-        subject = subject.decode(encoding or "utf-8")
+        msg = email.message_from_bytes(raw_email)
+        sender = msg.get("From")
+        subject, encoding = decode_header(msg["Subject"])[0]
+        if isinstance(subject, bytes):
+            subject = subject.decode(encoding or "utf-8")
 
-    print(f"📥 Processing Email - From: {sender}, Subject: {subject}")
+        print(f"📥 Processing Email - From: {sender}, Subject: {subject}")
 
     for num in messages[0].split():
         _, msg_data = mail.fetch(num, "(RFC822)")
