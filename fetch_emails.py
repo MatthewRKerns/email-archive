@@ -33,7 +33,7 @@ def fetch_emails():
     mail.login(EMAIL_USER, EMAIL_PASS)
     mail.select("inbox")
 
-    status, messages = mail.search(None, 'FROM "@natchezss.com"')
+    status, messages = mail.search(None, 'FROM "natchezss.com"')
 
     for num in messages[0].split():
         _, msg_data = mail.fetch(num, "(RFC822)")
