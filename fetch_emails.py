@@ -1,34 +1,55 @@
+import os
 import imaplib
 import email
-import os
+import psycopg2
 import sqlite3
 from email.header import decode_header
 from datetime import datetime
 
-EMAIL_HOST = "imap.gmail.com"  # Change for your provider
+# Environment Variables for Email Credentials
+EMAIL_HOST = "imap.gmail.com"  # Change for other providers
 EMAIL_USER = os.getenv("EMAIL_USER")
 EMAIL_PASS = os.getenv("EMAIL_PASS")
 
-if not EMAIL_USER or not EMAIL_PASS:
-    raise ValueError("❌ Missing EMAIL_USER or EMAIL_PASS. Check your GitHub Secrets.")
+# Database Connection (PostgreSQL)
+DATABASE_URL = os.getenv("DATABASE_URL")
 
+conn = psycopg2.connect(DATABASE_URL)
+c = conn.cursor()
+
+# Ensure the emails table exists
+c.execute("""
+    CREATE TABLE IF NOT EXISTS emails (
+        id SERIAL PRIMARY KEY,
+        received_date TEXT,
+        subject TEXT,
+        filename TEXT
+    )
+""")
+conn.commit()
+
+# Archive Directory
 ARCHIVE_DIR = "emails"
 os.makedirs(ARCHIVE_DIR, exist_ok=True)
 
-# Connect to SQLite
-conn = sqlite3.connect("emails.db")
-c = conn.cursor()
-
 def fetch_emails():
-    # Connect to IMAP
+    print("📡 Connecting to IMAP Server...")
     mail = imaplib.IMAP4_SSL(EMAIL_HOST)
-    mail.login(EMAIL_USER, EMAIL_PASS)
+
+    try:
+        mail.login(EMAIL_USER, EMAIL_PASS)
+        print("✅ Logged into Email Server!")
+    except imaplib.IMAP4.error:
+        print("❌ Authentication Failed! Check EMAIL_USER and EMAIL_PASS.")
+        return
+
     mail.select("inbox")
 
+    # Fetch emails from any subdomain of natchezss.com
     status, messages = mail.search(None, 'FROM', 'natchezss.com')
 
     if messages[0] == b'':
-        print("📭 No emails found matching 'natchezss.com'")
+        print("📭 No new emails found from @natchezss.com.")
         return
 
     print(f"📩 Found {len(messages[0].split())} emails from natchezss.com")
@@ -38,27 +59,34 @@ def fetch_emails():
         raw_email = msg_data[0][1]
 
         msg = email.message_from_bytes(raw_email)
+        
+        # Get sender info
+        sender = msg.get("From")
+
+        # Decode subject
         subject, encoding = decode_header(msg["Subject"])[0]
         if isinstance(subject, bytes):
             subject = subject.decode(encoding or "utf-8")
 
+        # Extract received date
         date_tuple = email.utils.parsedate_tz(msg["Date"])
         received_date = datetime.fromtimestamp(email.utils.mktime_tz(date_tuple)).strftime("%Y-%m-%d")
 
+        # Generate unique filename
         filename = f"{received_date}_{num.decode()}.html"
         filepath = os.path.join(ARCHIVE_DIR, filename)
 
+        # Save email content as HTML
         with open(filepath, "w", encoding="utf-8") as f:
             f.write(f"<h1>{subject}</h1><hr>")
             for part in msg.walk():
                 if part.get_content_type() == "text/html":
                     f.write(part.get_payload(decode=True).decode("utf-8"))
 
-        # ✅ Now properly inside the loop where variables exist
-        print(f"📝 Saving to database: {received_date}, {subject}, {filename}")
-
+        # Save email info to PostgreSQL
         try:
-            c.execute("INSERT INTO emails (received_date, subject, filename) VALUES (?, ?, ?)",
+            print(f"📝 Saving to database: {received_date}, {subject}, {filename}")
+            c.execute("INSERT INTO emails (received_date, subject, filename) VALUES (%s, %s, %s)",
                       (received_date, subject, filename))
             conn.commit()
             print("✅ Email successfully saved to database!")
@@ -66,6 +94,7 @@ def fetch_emails():
             print(f"❌ Error saving email to database: {e}")
 
     mail.logout()
+    print("📬 Fetching Complete!")
 
 if __name__ == "__main__":
     fetch_emails()
