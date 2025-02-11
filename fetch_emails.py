@@ -18,15 +18,16 @@ os.makedirs(ARCHIVE_DIR, exist_ok=True)
 # Connect to SQLite
 conn = sqlite3.connect("emails.db")
 c = conn.cursor()
-c.execute("""
-    CREATE TABLE IF NOT EXISTS emails (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        received_date TEXT,
-        subject TEXT,
-        filename TEXT
-    )
-""")
-conn.commit()
+print(f"📝 Saving to database: {received_date}, {subject}, {filename}")
+
+try:
+    c.execute("INSERT INTO emails (received_date, subject, filename) VALUES (%s, %s, %s)",
+              (received_date, subject, filename))
+    conn.commit()
+    print("✅ Email successfully saved to database!")
+except Exception as e:
+    print(f"❌ Error saving email to database: {e}")
+
 
 def fetch_emails():
     # Connect to IMAP
