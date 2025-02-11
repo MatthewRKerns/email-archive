@@ -1,5 +1,5 @@
 import sqlite3
-from flask import Flask, render_template, send_from_directory
+from flask import Flask, render_template, send_from_directory, jsonify
 import os
 from collections import defaultdict
 
@@ -41,4 +41,21 @@ def index():
         if not emails:
             print("📭 No emails found in database.")
 
-        
+        # Organize emails by month
+        email_dict = defaultdict(list)
+        for date, subject, filename in emails:
+            month = date[:7]  # Extract YYYY-MM
+            email_dict[month].append((date, subject, filename))
+
+        return render_template("index.html", email_dict=email_dict)
+
+    except sqlite3.Error as e:
+        print(f"❌ Database query error: {e}")
+        return jsonify({"error": "Database error", "details": str(e)}), 500  # Return JSON error response
+
+@app.route("/email/<filename>")
+def view_email(filename):
+    return send_from_directory(ARCHIVE_DIR, filename)
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=8080)
